@@ -18,4 +18,6 @@ public abstract class Person {
 
     public abstract void save();
 
+    public abstract String getDateOfBirth();
+
 }

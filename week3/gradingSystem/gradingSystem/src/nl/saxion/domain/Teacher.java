@@ -3,7 +3,7 @@ package nl.saxion.domain;
 import java.util.ArrayList;
 import java.util.stream.Stream;
 
-public class Teacher extends Person{
+public class Teacher extends Person implements Payable {
 
     private double salary;
 
@@ -27,5 +27,15 @@ public class Teacher extends Person{
     @Override
     public void save() {
         allTeachers.add(this);
+    }
+
+    @Override
+    public String getDateOfBirth() {
+        return "Teacher, date of birth: " + dateOfBirth;
+    }
+
+    @Override
+    public int pay() {
+        return (int) salary;
     }
 }

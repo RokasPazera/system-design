@@ -32,4 +32,9 @@ public class Student extends Person{
     public String getName() {
         return name;
     }
+
+    @Override
+    public String getDateOfBirth() {
+        return "Student, date of birth: " + dateOfBirth;
+    }
 }

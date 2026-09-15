@@ -22,13 +22,48 @@ public class Grading {
         new Course("sdp", "2021", "2", t1).save();
         new Course("oop", "2020", "3", t2).save();
         new Course("ip01", "2022", "1", t3).save();
+        new Coach("Rokas Pazera").save();
+        new Coach("Rimas Pa").save();
+    }
 
+    private void getDOB() {
+        System.out.println("dateOfBirth:");
+        for (Student s : Student.getAllStudents().toList()) {
+            System.out.println(s.getDateOfBirth());
+        }
+        for (Teacher t : Teacher.getAllTeachers().toList()) {
+            System.out.println(t.getDateOfBirth());
+        }
+        for (Coach c : Coach.getAllCoaches().toList()) {
+            System.out.println(c.getDateOfBirth());
+        }
+    }
 
+    private void helpingPeople(){
+        System.out.println("helpPerson:");
+        var coach = Coach.getAllCoaches().findFirst().get();
+        var student = Student.getAllStudents().findFirst().get();
+        var teacher = Teacher.getAllTeachers().findFirst().get();
+        System.out.println(coach.helpPerson(student));
+        System.out.println(coach.helpPerson(teacher));
+    }
+
+    private void payingPeople(){
+        System.out.println("pay:");
+        for (Teacher t : Teacher.getAllTeachers().toList()) {
+            System.out.println(t.getName() + " is paid: " + t.pay());
+        }
+        for (Coach c : Coach.getAllCoaches().toList()) {
+            System.out.println(c.getName() + " is paid: " + c.pay());
+        }
     }
 
     private void run() {
         // populate domain with some objects for testing purposes
         populateDomain();
+        getDOB();
+        helpingPeople();
+        payingPeople();
         var scanner = new Scanner(new BufferedInputStream(System.in));
         while (true) {
             System.out.print("Please enter the student number: ");
