@@ -1,10 +1,10 @@
 import nl.saxion.app.SaxionApp;
 
 import java.util.ArrayList;
-
+//TODO: there are way too many new lines in this class between methods and inside methods.
 public class Application implements Runnable{
 
-    ArrayList<Player> players = new ArrayList<>();
+    ArrayList<Player> players = new ArrayList<>(); //TODO: players are stored twice. Here and in Club.
 
     ArrayList<Club> clubs = new ArrayList<>();
 
@@ -17,9 +17,9 @@ public class Application implements Runnable{
 
 
     @Override
-    public void run() {
+    public void run() { //TODO: this method is too long. it needs to be broken down into smaller methods.
         generateMockData();
-        while(true){
+        while(true){ //TODO: too long if/else chain. A switch would be clearer.
             SaxionApp.printLine("Welcome to football manager!");
             SaxionApp.printLine("What would you like to do?");
             SaxionApp.printLine("1. Show clubs");
@@ -50,21 +50,21 @@ public class Application implements Runnable{
                 int playerId = SaxionApp.readInt();
                 Player player = findPlayer(playerId);
                 if(player == null){
-                    SaxionApp.printLine("Club " + playerId + " could not be found");
+                    SaxionApp.printLine("Club " + playerId + " could not be found"); //TODO: it should be Player instead of club.
                 }else{
                     SaxionApp.printLine("Player " + player);
                 }
 
-                SaxionApp.printLine("Price player: " + PriceCalculator.calculatePricePlayer(player));
+                SaxionApp.printLine("Price player: " + PriceCalculator.calculatePricePlayer(player)); //TODO: also runs when player is null.
             }else if(userInput == 4){
-                SaxionApp.print("Id of first club:");
+                SaxionApp.print("Id of first club:"); //TODO: no null check on club1 and club2.
                 Club club1 = findClub(SaxionApp.readInt());
                 SaxionApp.print("Id of second club:");
                 Club club2 = findClub(SaxionApp.readInt());
 
                 playMatchBetween2ClubsBasedOnRandomTeamScores(club1, club1.getPlayers(), club1.getKeeper(), club2, club2.getPlayers(), club2.getKeeper());
                 SaxionApp.printLine("score: " + scoreTeam1LastMatch + "-" +scoreTeam2LastMatch);
-                club1.getPlayers().get(0).calculateWinner(this);
+                club1.getPlayers().get(0).calculateWinner(this); //TODO: a random player is asked to calculate the winner.
 
             }else if(userInput == 5){
                 break;
@@ -104,12 +104,13 @@ public class Application implements Runnable{
     }
 
 
-
+    //TODO: this method name is too long, parameter list is too long and the return value is never used.
     private Club playMatchBetween2ClubsBasedOnRandomTeamScores(Club team1, ArrayList<Player> playersTeam1, Player keeperTeam1, Club team2, ArrayList<Player> playersTeam2, Player keeperTeam2){
         scoreTeam1LastMatch = 0;
         scoreTeam2LastMatch = 0;
 
 
+        //TODO: duplicated code. The team1 and team2 attack loops are almost the same.
         // =================== team1 does 5-10 attacks on team2 ===================
         int numberOfAttacksTeam1 = SaxionApp.getRandomValueBetween(5,10);
         for(int attack=0; attack < numberOfAttacksTeam1; attack++){
@@ -176,7 +177,7 @@ public class Application implements Runnable{
     }
 
 
-
+    //TODO: these variables should be at the top and private.
     public int scoreTeam1LastMatch = 0;
     public int scoreTeam2LastMatch = 0;
     public Club winnerLastMatch;
@@ -203,7 +204,7 @@ public class Application implements Runnable{
                     stat7 = SaxionApp.getRandomValueBetween(1,101);
                 }
 
-                Player nwPlayer = new Player(stat1, stat2,stat3,stat4,stat5,stat6, stat7);
+                Player nwPlayer = new Player(stat1, stat2,stat3,stat4,stat5,stat6, stat7); //TODO: inconsistent spacing between stats. the nwPlayer variable name should be newPlayer. it is unclear what each stat corresponds to exactly.
 
 
 

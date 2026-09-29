@@ -2,16 +2,16 @@ import nl.saxion.app.SaxionApp;
 
 public class Player {
 
-    public static int LASTID_USED = 0;
+    public static int LASTID_USED = 0; //TODO: should be just private and not named like a constant.
 
     private int id;
     private int offensiveLeftSkill;
     private int offensiveRightSkill;
-    private int midRightSkill;
-    private int midLeftSkill;
+    private int midRightSkill; //TODO: unused variable.
+    private int midLeftSkill; //TODO: unused variable.
     private int defensiveLeftSkill;
     private int defensiveRightSkill;
-    private int keeperSkills; //set to -1 if this player is not a keeper
+    private int keeperSkills; //set to -1 if this player is not a keeper //TODO: use a boolean isKeeper.
     private Club club;
 
 
@@ -30,6 +30,7 @@ public class Player {
 
 
 
+    //TODO: dead code, this method is never used.
     public void changeStats(int offensiveLeftSkill, int offensiveRightSkill, int midRightSkill, int midLeftSkill, int defensiveLeftSkill, int defensiveRightSkill, int keeperSkills) {
         this.offensiveLeftSkill = offensiveLeftSkill;
         this.offensiveRightSkill = offensiveRightSkill;
@@ -40,7 +41,7 @@ public class Player {
         this.keeperSkills = keeperSkills;
     }
 
-    public Club getClub() {
+    public Club getClub() { //TODO: dead code, this getter is never used.
         return club;
     }
 
@@ -88,11 +89,11 @@ public class Player {
 
     public boolean keeperBlockShot(){
         //the keeper can block a shot, the higher the keeperskill the higher the chance that he is successfull!
-        return SaxionApp.getRandomValueBetween(1,100) < this.keeperSkills;
+        return SaxionApp.getRandomValueBetween(1,100) < this.keeperSkills; //TODO: inconsistent range, everywhere else uses 1,101.
     }
 
 
-
+//TODO: bad spacing and new lines. This method only uses Application data and does not belong in Player.
     public String calculateWinner(Application application){
         String result = "";
         if(application.tieScoreLastMatch){
