@@ -1,0 +1,123 @@
+@startuml footballManager-redesign
+' footballManager redesign (week 6, assignment 3): the week 5 classes with the TODOs fixed.
+' Colours: green = new class, orange = existing class that changes.
+!pragma layout smetana
+
+skinparam dpi 130
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam nodesep 50
+skinparam ranksep 60
+hide circle
+
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #37474F
+  ArrowColor #37474F
+  StereotypeFontColor #546E7A
+}
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #FAFAFA
+  BorderColor #90A4AE
+  FontColor #37474F
+}
+skinparam legend {
+  BackgroundColor #FFFFFF
+  BorderColor #90A4AE
+  FontSize 11
+}
+
+title footballManager redesign
+
+interface "java.lang.Runnable" as Runnable <<interface>> {
+  + run(): void
+}
+
+package application {
+class Application #FFE0B2 {
+  {static} + main(args: String[]): void
+  + run(): void
+  - printMenu(): void
+  - showAllClubs(): void
+  - showClubInfo(): void
+  - showPlayerInfo(): void
+  - playMatch(): void
+}
+}
+
+package domain {
+class FootballManagerFacade <<Facade>> #DCEDC8 {
+  + FootballManagerFacade()
+  + getAllClubs(): ArrayList<Club>
+  + findClub(clubId: int): Club
+  + findPlayer(playerId: int): Player
+  + playMatch(homeClub: Club, awayClub: Club): Match
+  - generateMockData(): void
+}
+
+class Match #DCEDC8 {
+  - homeScore: int
+  - awayScore: int
+  + Match(homeClub: Club, awayClub: Club)
+  + play(): void
+  - simulateAttacks(attackingClub: Club, defendingClub: Club): int
+  + getHomeScore(): int
+  + getAwayScore(): int
+  + isTie(): boolean
+  + getWinner(): Club
+}
+
+class Club #FFE0B2 {
+  {static} + MAX_PLAYERS: int = 11 {readOnly}
+  - clubId: int
+  + Club(clubId: int)
+  + addPlayer(player: Player): void
+  + setKeeper(keeper: Player): void
+  + getClubId(): int
+  + getPlayers(): ArrayList<Player>
+  + getKeeper(): Player
+  + calculateTotalPrice(): int
+  + toString(): String
+}
+
+class Player #FFE0B2 {
+  {static} - nextId: int = 0
+  - id: int
+  - offensiveLeftSkill: int
+  - offensiveRightSkill: int
+  - defensiveLeftSkill: int
+  - defensiveRightSkill: int
+  - keeperSkill: int
+  - isKeeper: boolean
+  + Player(offensiveLeftSkill: int, offensiveRightSkill: int, defensiveLeftSkill: int, defensiveRightSkill: int)
+  + Player(offensiveLeftSkill: int, offensiveRightSkill: int, defensiveLeftSkill: int, defensiveRightSkill: int, keeperSkill: int)
+  + setClub(club: Club): void
+  + getId(): int
+  + getOffensiveLeftSkill(): int
+  + getOffensiveRightSkill(): int
+  + getDefensiveLeftSkill(): int
+  + getDefensiveRightSkill(): int
+  + blockShot(): boolean
+  + calculatePrice(): int
+  + toString(): String
+}
+}
+
+Runnable <|.. Application
+Application --> "facade 1" FootballManagerFacade
+FootballManagerFacade --> "clubs 0..*" Club
+FootballManagerFacade ..> Match : <<create>>
+Match --> "homeClub 1" Club
+Match --> "awayClub 1" Club
+Club "club 1" -- "players 0..11" Player
+Club --> "keeper 0..1" Player
+
+legend right
+  <back:#DCEDC8><color:#DCEDC8>XXXXX</color></back> new class
+  <back:#FFE0B2><color:#FFE0B2>XXXXX</color></back> existing class, changed
+  Removed: <b>PriceCalculator</b> (price methods moved into Player and Club)
+endlegend
+@enduml
