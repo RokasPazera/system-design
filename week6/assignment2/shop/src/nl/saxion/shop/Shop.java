@@ -8,8 +8,9 @@ import java.util.ArrayList;
 public class Shop {
     ArrayList<Product> products = new ArrayList<Product>();
     StatisticsManager statisticsManager;
+    private static Shop instance;
 
-    public Shop() {
+    private Shop() {
         //setup
         statisticsManager = new StatisticsManager();
 
@@ -30,4 +31,25 @@ public class Shop {
             products.add(product);
         }
     }
+
+    public static Shop getInstance() {
+        if (instance == null) {
+            instance = new Shop();
+        }
+        return instance;
+    }
+
+    public Product findProduct(String name){
+        for (Product product : products){
+            if(product.getName().equals(name)){
+                return product;
+            }
+        }
+        return null;
+    }
+
+    public ArrayList<Product> getProducts() {
+        return products;
+    }
+
 }

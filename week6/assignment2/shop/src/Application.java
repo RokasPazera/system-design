@@ -17,7 +17,7 @@ public class Application implements Runnable{
     @Override
     public void run() {
         //setup
-        shop = new Shop();
+        shop =  Shop.getInstance();
         ShopScanner shopScanner = new ShopScanner(); //the scanner the user is holding
 
         boolean isRunning = true;

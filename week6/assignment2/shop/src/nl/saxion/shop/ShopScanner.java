@@ -1,4 +1,5 @@
 package nl.saxion.shop;
+import nl.saxion.app.SaxionApp;
 
 import java.util.ArrayList;
 
@@ -7,9 +8,12 @@ public class ShopScanner {
 
 
     public void addGrocery(String name){
-        //TODO: find the product in the shop by name
-        // if it does not exist: show error message
-        // if found add it the grocerylist
+        Product product = Shop.getInstance().findProduct(name);
+        if(product == null){
+            SaxionApp.printLine("Product does not exist in the store.");
+        } else {
+            groceries.add(product);
+        }
     }
 
 
