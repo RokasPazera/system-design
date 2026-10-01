@@ -3,9 +3,9 @@ import java.util.ArrayList;
 public class Club {
     private int clubId;
     private ArrayList<Player> players = new ArrayList<>();
-    Player keeper; //TODO: this field should be private.
+    Player keeper; //TODO: Encapsulation: this field should be private.
 
-    public int timesInspected = 0; //TODO: this variable is not used anywhere to see it. It is only being increased in the Application class.
+    public int timesInspected = 0; //TODO: Dead Code: this variable is not used anywhere to see it. It is only being increased in the Application class.
 
 
     public Club(int clubId) {
@@ -23,7 +23,7 @@ public class Club {
     }
 
 
-    /* this method can be used to get the club id*/ //TODO: useless getter
+    /* this method can be used to get the club id*/ //TODO: Comments: this comment is useless, the method name already says what it does.
     public int getClubId() {
         return clubId;
     }
