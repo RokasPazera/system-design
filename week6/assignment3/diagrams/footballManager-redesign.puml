@@ -106,14 +106,19 @@ class Player #FFE0B2 {
 }
 }
 
+' The direction hint and the &#8195; (em space) / &#160; (no-break space) padding keep the end labels clear of the lines in the smetana layout.
 Runnable <|.. Application
-Application --> "facade 1" FootballManagerFacade
-FootballManagerFacade --> "clubs 0..*" Club
+Application --> "facade 1&#8195;" FootballManagerFacade
+FootballManagerFacade --> "clubs 0..*&#8195;" Club
 FootballManagerFacade ..> Match : <<create>>
-Match --> "homeClub 1" Club
-Match --> "awayClub 1" Club
-Club "club 1" -- "players 0..11" Player
-Club --> "keeper 0..1" Player
+Match -up-> "homeClub 1&#160;" Club
+Match -up-> "&#8195;awayClub 1" Club
+Match ..> Player
+Club "club 1&#8195;" -- "players 0..11&#8195;" Player
+Club --> "&#8195;keeper 0..1" Player
+Application ..> Match
+Application ..> Club
+Application ..> Player
 
 legend right
   <back:#DCEDC8><color:#DCEDC8>XXXXX</color></back> new class
