@@ -2,19 +2,10 @@ package net.saxion.pizzaplace;
 
 import net.saxion.pizzaplace.pizza.*;
 
-public class Store {
+public abstract class Store {
 
     public Pizza orderPizza(String type) throws Exception {
-        Pizza pizza;
-        if (type.equals("cheese")) {
-            pizza = new CheesePizza();
-        } else if (type.equals("hawaii")) {
-            pizza = new HawaiiPizza();
-        } else if (type.equals("pepperoni")) {
-            pizza = new PepperoniPizza();
-        } else {
-            throw new Exception("Pizza not on menu");
-        }
+        Pizza pizza = createPizza(type);
 
         pizza.prepare();
         pizza.bake();
@@ -22,4 +13,6 @@ public class Store {
         pizza.box();
         return pizza;
     }
+
+    protected abstract Pizza createPizza(String type) throws Exception;
 }
