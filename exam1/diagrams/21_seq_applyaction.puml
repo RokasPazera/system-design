@@ -1,0 +1,60 @@
+@startuml 21_seq_applyaction
+!include style.iuml
+skinparam style strictuml
+skinparam maxMessageSize 200
+
+participant ":Battle Broadcaster" as C
+participant ":BattleEngineFacade" as E
+participant ":ActionValidator" as V
+participant "rule :\nActionRule" as R
+participant ":ActionResolver" as AR
+participant "effect :\nActionEffect" as EF
+participant "target :\nUnit" as U
+participant ":Battle" as B
+participant ":BattleLog" as L
+
+C -> E : applyAction(unitId, action)
+activate E
+E -> E : requireInProgress()
+E -> V : validate(battle, unitId, action)
+activate V
+V -> V : createRequest(...)\n(look up caster, definition, targets)
+loop for each rule, in order
+  V -> R : check(request)
+  activate R
+  R --> V : violation [0..1]
+  deactivate R
+  break violation found
+    V --> C : throw InvalidActionException(violation)
+  end
+end
+V --> E : validated : ValidatedAction
+deactivate V
+
+E -> AR : resolve(battle, validated)
+activate AR
+loop for each effect of the definition
+  loop for each target that is not knocked out
+    AR -> EF : apply(caster, target)
+    activate EF
+    EF -> U : takeDamage(amount) / heal(amount) /\nmodifyStat(stat, percentage)
+    EF --> AR : EffectResult
+    deactivate EF
+  end
+end
+AR -> L : add(ActionPerformedEntry)
+loop for each target with hp = 0
+  AR -> B : removeKnockedOut(target)
+  AR -> L : add(UnitKnockedOutEntry)
+end
+AR -> B : determineWinner()
+B --> AR : winner [0..1]
+opt winner found
+  AR -> B : finish(winner)
+  AR -> L : add(BattleEndedEntry)
+end
+AR --> E
+deactivate AR
+E --> C
+deactivate E
+@enduml

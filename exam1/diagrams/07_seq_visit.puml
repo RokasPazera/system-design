@@ -1,0 +1,44 @@
+@startuml 07_seq_visit
+!include style.iuml
+skinparam style strictuml
+skinparam maxMessageSize 220
+
+participant ":Game Client" as C
+participant ":Instance Manager" as IM
+participant "a : Game Instance\n(current world)" as A
+participant "b : Game Instance\n(world of player B)" as B
+participant ":Persistence Service" as PS
+
+C -> IM : requestVisit(token, ownerPlayerId = B)
+activate IM
+IM -> IM : look up instance of B in registry
+break instance b is not running, or b already has 8 players
+  IM --> C : error "world not available" / "world is full"
+end
+IM --> C : InstanceAddress(address of b)
+deactivate IM
+
+C -> A : leave()
+activate A
+A -> PS : savePosition(playerId, position)
+note right of A : all other player data was\nalready saved when it changed\n(write-through)
+A -> IM : reportStatus(a, playerCount = 0)
+deactivate A
+
+C -> B : join(token)
+activate B
+B -> B : check access token,\ncheck playerCount < 8
+B -> PS : getPlayer(playerId)
+PS --> B : characters, items, position
+B -> IM : reportStatus(b, playerCount + 1)
+B --> C : WorldUpdate (world of player B)
+deactivate B
+
+... instance a has had 0 players for 30 seconds ...
+
+IM -> A : shutdown()
+activate A
+A --> IM : stopped
+deactivate A
+IM -> IM : remove a from registry
+@enduml

@@ -1,0 +1,28 @@
+@startuml 04_c4_container
+!include <C4/C4_Container>
+!include style_c4.iuml
+
+Person(player, "Player", "Plays the game on their own computer.")
+
+System_Boundary(sys, "Online Game System") {
+  Container(client, "Game Client", "Java 21, jMonkeyEngine, desktop application", "Renders the 3D world, plays audio, reads input and shows the world, the battle state and the battle log.")
+  Container(im, "Instance Manager", "Java 21, Spring Boot service", "Starts and stops game instances, keeps the instance registry and routes players to an instance (max. 8 players).")
+  Container(gi, "Game Instance", "Java 21 server process (JVM), one per instance", "Runs one world session for up to 8 players: exploration, quests, equipment and turn-based battles (Battle Engine). Keeps data only in memory.", $tags="focus")
+  Container(ps, "Persistence Service", "Java 21, Spring Boot, REST API", "The only access point to permanent player data: characters, levels, stats, weapons, equipment and position.")
+  ContainerDb(db, "Player Database", "PostgreSQL", "Stores the progress of all players.")
+}
+
+System_Ext(account, "Account Provider", "Studio-wide account system. Authenticates players, issues access tokens.")
+
+Rel(player, client, "Plays the game using")
+Rel_L(client, account, "Logs in", "HTTPS, OAuth 2.0")
+Rel_R(client, im, "Requests own world or a visit; gets instance address", "HTTPS, REST/JSON")
+Rel(client, gi, "Sends commands; receives world and battle updates", "WebSocket over TLS")
+Rel(im, gi, "Starts and stops", "container orchestrator API")
+Rel(gi, im, "Registers, reports player count", "HTTPS, REST/JSON")
+Rel_R(gi, ps, "Loads and saves player data", "HTTPS, REST/JSON")
+Rel_D(ps, db, "Reads and writes", "SQL over TCP")
+Rel(im, account, "Validates access tokens", "HTTPS")
+
+SHOW_LEGEND()
+@enduml

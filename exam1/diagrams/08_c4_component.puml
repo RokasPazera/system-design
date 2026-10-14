@@ -1,0 +1,49 @@
+@startuml 08_c4_component
+!include <C4/C4_Component>
+!include style_c4.iuml
+skinparam wrapWidth 190
+
+Container(client, "Game Client", "Java 21, jMonkeyEngine", "Shows the world and battles, reads input.")
+
+Container_Boundary(gi, "Game Instance") {
+  Component(gw, "Session Gateway", "Java, Netty WebSocket server", "Accepts connections, checks the access token, routes commands, pushes updates.")
+  Component(psm, "Player Session Manager", "Java", "Players on this instance (max. 8): join, leave, disconnect.")
+  Component(agent, "Instance Agent", "Java", "Registers the instance, reports player count, shuts down gracefully.")
+  Component(world, "World Simulation", "Java", "Exploration, positions, quests, equipment. Detects encounters.")
+  Component(coord, "Battle Coordinator", "Java", "One Battle Engine per battle, runs the turn loop, saves the result.")
+  Component(human, "Human Battle Controller", "Java, BattleController", "Turns the player's battle commands into engine calls.")
+  Component(ai, "AI Battle Controller", "Java, BattleController", "Chooses and applies the computer's actions.")
+  Component(pdc, "Player Data Client", "Java, HTTP client", "Loads player data on join, caches it, writes every change through.")
+  Component(bc, "Battle Broadcaster", "Java, decorator", "Forwards every call to the engine and publishes each change.")
+  Component(engine, "Battle Engine", "Java library, BattleEngine", "Battle rules: turn order, actions, damage, healing, stat changes, knock-outs, battle log.", $tags="focus")
+}
+
+Container(im, "Instance Manager", "Java 21, Spring Boot", "Instance registry and routing.")
+Container(ps, "Persistence Service", "Java 21, Spring Boot", "Permanent player data.")
+
+Rel_D(client, gw, "Commands and updates", "WebSocket over TLS")
+Rel_D(gw, world, "Exploration commands")
+Rel_D(gw, psm, "Join, leave")
+Rel_D(gw, human, "Battle commands")
+Rel_R(psm, agent, "Player count changed")
+Rel_D(psm, pdc, "Load on join, save on leave")
+Rel(psm, coord, "Player disconnected")
+Rel_D(world, coord, "Encounter started")
+Rel(coord, human, "playTurn", "BattleController")
+Rel(coord, ai, "playTurn", "BattleController")
+Rel_D(coord, bc, "startBattle, nextTurn, getBattleLog", "BattleLifecycle")
+Rel(coord, engine, "Creates one engine per battle", "BattleEngineFactory")
+Rel_R(coord, pdc, "Reads party, saves battle result")
+Rel_D(human, bc, "getAvailableActions, applyAction", "BattleActions")
+Rel_D(ai, bc, "getBattleState, getAvailableActions, applyAction", "BattleActions")
+Rel_D(bc, engine, "Delegates all calls", "BattleEngine")
+Rel_U(bc, gw, "Publishes battle updates", "ClientNotifier")
+Rel_D(agent, im, "Registers, reports player count", "HTTPS")
+Rel_U(im, agent, "Shutdown", "HTTPS")
+Rel_D(pdc, ps, "Loads and saves", "HTTPS, REST/JSON")
+
+
+
+
+SHOW_LEGEND()
+@enduml

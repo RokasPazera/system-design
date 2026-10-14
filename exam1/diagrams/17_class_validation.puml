@@ -1,0 +1,98 @@
+@startuml 17_class_validation
+!include style_class.iuml
+
+package "battleengine.validation" {
+  class ActionValidator {
+    - rules : List<ActionRule>
+    + ActionValidator(rules : List<ActionRule>)
+    + validate(battle : Battle, unitId : int,\n    action : Action) : ValidatedAction
+    - createRequest(battle : Battle, unitId : int,\n    action : Action) : ActionRequest
+  }
+  interface ActionRule <<interface>> {
+    + check(request : ActionRequest) : RuleViolation [0..1]
+  }
+  class CasterRule
+  class KnownActionRule
+  class TargetCountRule
+  class TargetSelectionRule
+  class ActionRequest {
+    + battle : Battle {readOnly}
+    + unitId : int {readOnly}
+    + action : Action {readOnly}
+    + caster : Unit [0..1] {readOnly}
+    + definition : ActionDefinition [0..1] {readOnly}
+    + targets : List<Unit> {readOnly}
+    + unknownTargetIds : List<Integer> {readOnly}
+  }
+  class ValidatedAction {
+    + caster : Unit {readOnly}
+    + definition : ActionDefinition {readOnly}
+    + targets : List<Unit> {readOnly}
+  }
+}
+
+package "battleengine.api" {
+  enum RuleViolation <<enumeration>> {
+    UNKNOWN_UNIT
+    CASTER_MISMATCH
+    UNIT_KNOCKED_OUT
+    NOT_ACTIVE_PLAYER
+    UNKNOWN_ACTION
+    NO_TARGETS
+    TOO_MANY_TARGETS
+    DUPLICATE_TARGET
+    INVALID_TARGET
+  }
+  class InvalidActionException {
+    + violation : RuleViolation {readOnly}
+  }
+}
+
+ActionValidator "1" o-- "1..*" ActionRule : rules\n{ordered}
+ActionRule <|.. CasterRule
+ActionRule <|.. KnownActionRule
+ActionRule <|.. TargetCountRule
+ActionRule <|.. TargetSelectionRule
+ActionValidator .right.> ActionRequest : <<create>>
+ActionValidator ..> ValidatedAction : <<create>>
+ActionValidator ..> InvalidActionException : <<throw>>
+InvalidActionException --> "1" RuleViolation : violation
+ActionRule .right.> RuleViolation : returns >
+
+note bottom of CasterRule
+  caster exists
+  (UNKNOWN_UNIT),
+  casterId = unitId
+  (CASTER_MISMATCH),
+  not knocked out
+  (UNIT_KNOCKED_OUT),
+  belongs to the active
+  player (NOT_ACTIVE_PLAYER)
+end note
+note bottom of KnownActionRule
+  caster knows an
+  ActionDefinition with
+  this actionId
+  (UNKNOWN_ACTION)
+end note
+note bottom of TargetCountRule
+  1 <= targets <= maxTargets
+  (NO_TARGETS,
+  TOO_MANY_TARGETS),
+  no target twice
+  (DUPLICATE_TARGET)
+end note
+note bottom of TargetSelectionRule
+  every target exists, is
+  not knocked out, is not
+  the caster and fits the
+  targetType
+  (INVALID_TARGET)
+end note
+
+note top of ActionValidator
+  Runs the rules in order. The first violation
+  stops the check: InvalidActionException is
+  thrown and nothing in the battle changes.
+end note
+@enduml

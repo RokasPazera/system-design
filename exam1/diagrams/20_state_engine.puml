@@ -1,0 +1,33 @@
+@startuml 20_state_engine
+!include style.iuml
+hide empty description
+
+[*] --> NotStarted : DefaultBattleEngineFactory.create()
+
+NotStarted : startBattle(config) [config invalid]\n/ throw InvalidBattleConfigException
+NotStarted : other methods\n/ throw BattleStateException
+
+NotStarted --> InProgress : startBattle(config) [config valid]\n/ build Battle, log "Battle starts"
+
+state InProgress {
+  state choice1 <<choice>>
+  [*] --> choice1
+  choice1 --> HumanTurn : [firstPlayer = HUMAN]
+  choice1 --> ComputerTurn : [firstPlayer = COMPUTER]
+
+  HumanTurn : entry / activePlayer = player 1,\nlog "Turn passed to player 1 (Human)"
+  HumanTurn : applyAction(unitId, action) [valid]\n/ resolve effects, log
+  ComputerTurn : entry / activePlayer = player 2,\nlog "Turn passed to player 2 (Computer)"
+  ComputerTurn : applyAction(unitId, action) [valid]\n/ resolve effects, log
+
+  HumanTurn --> ComputerTurn : nextTurn() / turnNumber + 1
+  ComputerTurn --> HumanTurn : nextTurn() / turnNumber + 1
+}
+
+InProgress : applyAction(...) [invalid]\n/ throw InvalidActionException
+InProgress --> Finished : applyAction(...) [all units of one player knocked out]\n/ winner = other player, log "Battle ends: ... wins"
+
+Finished : getBattleState(), getBattleLog() still allowed
+Finished : applyAction(), nextTurn()\n/ throw BattleStateException
+Finished --> [*] : engine released by\nthe Battle Coordinator
+@enduml

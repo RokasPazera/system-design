@@ -1,0 +1,43 @@
+@startuml 06_comp_l2
+!include style.iuml
+skinparam componentStyle uml2
+skinparam nodesep 60
+skinparam ranksep 45
+
+component "Account Provider" <<external>> as ap
+component "Game Client" as client
+component "Instance Manager" as im
+component "Game Instance" as gi #EDE3F5
+component "Persistence Service" as ps
+component "Player Database" <<database>> as db
+
+interface "AuthenticationApi" as IAUTH
+interface "InstanceRoutingApi" as IIR
+interface "InstanceRegistryApi" as IREG
+interface "InstanceControlApi" as ICTL
+interface "GameSessionApi" as IGS
+interface "PlayerDataApi" as IPD
+interface "SQL" as ISQL
+
+ap -down- IAUTH
+client -up-( IAUTH
+im -up-( IAUTH
+
+im -left- IIR
+client -right-( IIR
+
+gi -up- IGS
+client -down-( IGS
+
+im -down- IREG
+gi -right-( IREG
+
+gi -down- ICTL
+im -down-( ICTL
+
+ps -up- IPD
+gi -down-( IPD
+
+db -up- ISQL
+ps -down-( ISQL
+@enduml

@@ -1,0 +1,85 @@
+@startuml 13_pkg_engine
+!include style.iuml
+skinparam nodesep 35
+skinparam ranksep 60
+skinparam defaultTextAlignment left
+set separator none
+
+package "battleengine.engine" as eng {
+  label l_eng [
+  BattleEngineFacade
+  DefaultBattleEngineFactory
+  BattleFactory
+  TurnManager
+  ActionResolver
+  ]
+}
+
+package "battleengine.validation" as val {
+  label l_val [
+  ActionValidator, ActionRule
+  CasterRule, KnownActionRule,
+  TargetCountRule, TargetSelectionRule
+  ActionRequest, ValidatedAction
+  ]
+}
+
+package "battleengine.effects" as eff {
+  label l_eff [
+  DamageEffect
+  HealEffect
+  StatModifierEffect
+  EffectFactory
+  ]
+}
+
+package "battleengine.api" as api {
+  label l_api [
+  BattleEngine, BattleActions,
+  BattleLifecycle, BattleEngineFactory
+  ConfigBattle, UnitConfig,
+  ActionConfig, EffectConfig
+  Action, RuleViolation
+  BattleException (+ 4 subclasses)
+  ]
+}
+
+package "battleengine.model" as mod {
+  label l_mod [
+  Battle, BattlePlayer, Unit, Stats
+  ActionDefinition, ActionEffect
+  BattleStatus, PlayerKind,
+  StatType, TargetType
+  ]
+}
+
+package "battleengine.logging" as log {
+  label l_log [
+  BattleLog
+  LogEntry (+ 5 subclasses)
+  EffectResult
+  ]
+}
+
+eng ..> val
+eng ..> eff
+eng ..> api
+val ..> api
+eff ..> api
+val ..> mod
+eff ..> mod
+api ..> mod
+mod ..> log
+api ..> log
+eff ..> log
+
+note right of log
+  All dependencies point downwards:
+  no package depends on a package
+  that depends on it (no cycles).
+  Engine also uses Model and Logging
+  (arrows left out for readability).
+  battle-engine.jar depends on no
+  other jar of the game.
+end note
+@enduml

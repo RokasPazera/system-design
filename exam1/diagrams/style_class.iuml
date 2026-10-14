@@ -1,0 +1,8 @@
+' Extra settings for the UML class diagrams (level 4)
+!include style.iuml
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam nodesep 40
+skinparam ranksep 50
+hide empty members
+set separator none

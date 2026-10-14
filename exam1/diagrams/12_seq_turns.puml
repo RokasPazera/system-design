@@ -1,0 +1,57 @@
+@startuml 12_seq_turns
+!include style.iuml
+skinparam style strictuml
+skinparam maxMessageSize 190
+
+participant ":Game Client" as C
+participant ":Session Gateway" as GW
+participant ":Battle Coordinator" as BC
+participant ":Human Battle\nController" as HC
+participant ":AI Battle\nController" as AI
+participant ":Battle Broadcaster" as BB
+participant ":Player Data Client" as PDC
+
+note over BB : forwards every call to the\nBattle Engine (not shown) and\npublishes the new state and log\nlines after every change
+
+loop while battle.status = IN_PROGRESS
+  BC -> BB : getBattleState()
+  alt active player is the Human player
+    BC -> HC : playTurn(engine)
+    activate HC
+    loop until "End turn" or turn timer (60 s) expires
+      C -> GW : selectUnit(unitId)
+      GW -> HC : selectUnit(unitId)
+      HC -> BB : getAvailableActions(unitId)
+      BB --> HC : actions with valid targets
+      HC -> GW : send(actions)
+      GW -> C : AvailableActions
+      C -> GW : useAction(unitId, actionId, targetIds)
+      GW -> HC : useAction(unitId, actionId, targetIds)
+      HC -> BB : applyAction(unitId, action)
+      BB -> GW : publish(state, new log lines)
+      GW -> C : BattleUpdate
+    end
+    HC --> BC : turn finished
+    deactivate HC
+  else active player is the Computer player
+    BC -> AI : playTurn(engine)
+    activate AI
+    AI -> BB : getBattleState()
+    loop for each active computer unit
+      AI -> BB : getAvailableActions(unitId)
+      AI -> AI : choose action and targets
+      AI -> BB : applyAction(unitId, action)
+      BB -> GW : publish(state, new log lines)
+    end
+    AI --> BC : turn finished
+    deactivate AI
+  end
+  opt battle still in progress
+    BC -> BB : nextTurn()
+    BB -> GW : publish(state, "Turn passed to ...")
+  end
+end
+BC -> BB : getBattleLog(battleId)
+BC -> PDC : saveBattleResult(playerId, result)
+note right of PDC : written through to the\nPersistence Service at once
+@enduml

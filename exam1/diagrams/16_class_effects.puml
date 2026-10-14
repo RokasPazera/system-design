@@ -1,0 +1,108 @@
+@startuml 16_class_effects
+!include style_class.iuml
+
+package "battleengine.api" {
+  class Action {
+    + actionId : String
+    + name : String {readOnly}
+    + description : String {readOnly}
+    + casterId : int
+    + maxTargets : int {readOnly}
+    + validTargetIds : List<Integer> {readOnly}
+    + targetIds : List<Integer>
+    + withTargets(targetIds : List<Integer>) : Action
+  }
+  class EffectConfig
+}
+
+package "battleengine.model" {
+  class ActionDefinition
+  interface ActionEffect <<interface>> {
+    + apply(caster : Unit, target : Unit) : EffectResult
+    + describe() : String
+    + describeResults(results : List<EffectResult>) : String
+  }
+}
+
+package "battleengine.effects" {
+  class DamageEffect {
+    - baseDamage : int
+    + apply(caster : Unit, target : Unit) : EffectResult
+  }
+  class HealEffect {
+    - baseHealing : int
+    + apply(caster : Unit, target : Unit) : EffectResult
+  }
+  class StatModifierEffect {
+    - stat : StatType
+    - percentage : int
+    + apply(caster : Unit, target : Unit) : EffectResult
+  }
+  class EffectFactory {
+    - creators : Map<String, Function<EffectConfig, ActionEffect>>
+    + register(type : String,\n    creator : Function<EffectConfig, ActionEffect>) : void
+    + create(config : EffectConfig) : ActionEffect
+    + {static} createDefault() : EffectFactory
+  }
+}
+
+package "battleengine.engine" {
+  class ActionResolver {
+    + resolve(battle : Battle, action : ValidatedAction) : void
+  }
+}
+
+package "battleengine.logging" {
+  class EffectResult {
+    + targetId : int {readOnly}
+    + targetName : String {readOnly}
+    + amount : int {readOnly}
+    + valueBefore : int {readOnly}
+    + valueAfter : int {readOnly}
+  }
+}
+
+Action ..> ActionDefinition : actionId refers to >
+ActionDefinition "1" o-- "1..*" ActionEffect : effects\n{ordered}
+ActionEffect <|.. DamageEffect
+ActionEffect <|.. HealEffect
+ActionEffect <|.. StatModifierEffect
+EffectFactory .up.> ActionEffect : <<create>>
+EffectFactory ..> EffectConfig : reads >
+ActionResolver .up.> ActionEffect : calls apply() >
+ActionEffect .right.> EffectResult : <<create>>
+
+note bottom of DamageEffect
+  amount = max(0, baseDamage
+    + caster.power - target.defence)
+  target.takeDamage(amount)
+end note
+
+note bottom of HealEffect
+  amount = baseHealing
+    + caster.spirit
+  target.heal(amount)
+  (hp capped at maxHp)
+end note
+
+note bottom of StatModifierEffect
+  new = ceil(old * (100 + percentage) / 100)
+  with integer arithmetic, minimum 0.
+  The caster's stats are not used.
+end note
+
+note bottom of EffectFactory
+  "damage" -> DamageEffect(value)
+  "heal" -> HealEffect(value)
+  "modifyStat" -> StatModifierEffect(stat, value)
+  New effect type = new class + register() (OCP)
+end note
+
+note top of Action
+  Request object of the interface. getAvailableActions()
+  fills validTargetIds, the caller fills targetIds.
+  The engine only trusts actionId, casterId and
+  targetIds: every number comes from its own
+  ActionDefinition.
+end note
+@enduml

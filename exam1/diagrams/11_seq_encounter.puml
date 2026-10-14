@@ -1,0 +1,45 @@
+@startuml 11_seq_encounter
+!include style.iuml
+skinparam style strictuml
+skinparam maxMessageSize 200
+
+participant ":Game Client" as C
+participant ":Session Gateway" as GW
+participant ":World Simulation" as W
+participant ":Battle Coordinator" as BC
+participant ":Player Data Client" as PDC
+participant ":DefaultBattleEngineFactory" as F
+participant "engine :\nBattleEngineFacade" as BE
+participant ":Battle Broadcaster" as BB
+
+C -> GW : move(direction)
+GW -> W : move(playerId, direction)
+activate W
+W -> W : check encounter table\nfor the new position
+opt enemy group encountered
+  W -> BC : onEncounter(playerId, enemyGroupId)
+  activate BC
+  BC -> PDC : getParty(playerId)
+  PDC --> BC : characters (level, stats incl.\nequipment, HP, known actions)
+  BC -> BC : build ConfigBattle:\ncharacters -> humanUnits,\nenemy group -> computerUnits
+  BC -> F : create()
+  activate F
+  create BE
+  F -> BE : new(...)
+  F --> BC : engine
+  deactivate F
+  create BB
+  BC -> BB : new(engine, playerId)
+  BC -> BB : startBattle(config)
+  activate BB
+  BB -> BE : startBattle(config)
+  BB -> BE : getBattleState()
+  BE --> BB : battle (snapshot)
+  BB -> GW : publish(playerId, BattleStarted(battle))
+  GW -> C : BattleUpdate
+  deactivate BB
+  BC -> BC : runTurnLoop()\n(Figure 6.5)
+  deactivate BC
+end
+deactivate W
+@enduml

@@ -1,0 +1,70 @@
+@startuml 19_class_log
+!include style_class.iuml
+
+package "battleengine.logging" {
+  class BattleLog {
+    + battleId : UUID {readOnly}
+    + add(entry : LogEntry) : void
+    + toText() : List<String>
+    + copy() : BattleLog
+  }
+  abstract class LogEntry {
+    + sequenceNumber : int {readOnly}
+    + turnNumber : int {readOnly}
+    + timestamp : Instant {readOnly}
+    + {abstract} toText() : String
+  }
+  class BattleStartedEntry
+  class TurnPassedEntry {
+    + playerNumber : int
+    + playerName : String
+  }
+  class ActionPerformedEntry {
+    + casterId : int
+    + casterName : String
+    + actionId : String
+    + actionName : String
+    + text : String
+  }
+  class UnitKnockedOutEntry {
+    + unitId : int
+    + unitName : String
+  }
+  class BattleEndedEntry {
+    + winnerNumber : int
+    + winnerName : String
+  }
+  class EffectResult {
+    + targetId : int {readOnly}
+    + targetName : String {readOnly}
+    + amount : int {readOnly}
+    + valueBefore : int {readOnly}
+    + valueAfter : int {readOnly}
+  }
+}
+
+BattleLog "1" *-right- "0..*" LogEntry : entries\n{ordered}
+LogEntry <|-- BattleStartedEntry
+LogEntry <|-- TurnPassedEntry
+LogEntry <|-- ActionPerformedEntry
+LogEntry <|-- UnitKnockedOutEntry
+LogEntry <|-- BattleEndedEntry
+ActionPerformedEntry "1" *-- "1..*" EffectResult : results\n{ordered}
+
+note top of BattleLog
+  Append-only; entries are immutable,
+  so copy() only copies the list.
+  toText() returns one line per entry.
+end note
+
+note right of LogEntry
+  Every subclass implements toText() and
+  all attributes are {readOnly}. Examples:
+  "Battle starts"
+  "Turn passed to player 1 (Human)"
+  "Unit B uses Action X2 and did 3 damage
+   to unit A and 4 damage to unit D."
+  "Unit C is knocked out"
+  "Battle ends: player 1 (Human) wins"
+end note
+@enduml

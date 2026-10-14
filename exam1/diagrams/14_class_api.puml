@@ -1,0 +1,87 @@
+@startuml 14_class_api
+!include style_class.iuml
+
+package "battleengine.api" {
+  interface BattleActions <<interface>> {
+    + getBattleState() : Battle
+    + getAvailableActions(unitId : int) : List<Action>
+    + applyAction(unitId : int, action : Action) : void
+  }
+  interface BattleLifecycle <<interface>> {
+    + startBattle(config : ConfigBattle) : void
+    + getBattleState() : Battle
+    + nextTurn() : void
+    + getBattleLog(battleId : UUID) : BattleLog
+  }
+  interface BattleEngine <<interface>>
+  interface BattleEngineFactory <<interface>> {
+    + create() : BattleEngine
+  }
+}
+
+package "battleengine.engine" {
+  class BattleEngineFacade {
+    + BattleEngineFacade(battleFactory : BattleFactory,\n    turnManager : TurnManager,\n    validator : ActionValidator,\n    resolver : ActionResolver)
+    + startBattle(config : ConfigBattle) : void
+    + getBattleState() : Battle
+    + getAvailableActions(unitId : int) : List<Action>
+    + applyAction(unitId : int, action : Action) : void
+    + nextTurn() : void
+    + getBattleLog(battleId : UUID) : BattleLog
+    - requireStarted() : Battle
+    - requireInProgress() : Battle
+  }
+  class DefaultBattleEngineFactory {
+    - effectFactory : EffectFactory
+    + create() : BattleEngine
+  }
+  class BattleFactory {
+    + create(config : ConfigBattle) : Battle
+  }
+  class TurnManager {
+    + startFirstTurn(battle : Battle,\n    first : PlayerKind) : void
+    + passTurn(battle : Battle) : void
+  }
+  class ActionResolver {
+    + resolve(battle : Battle,\n    action : ValidatedAction) : void
+  }
+}
+
+package "battleengine.validation" {
+  class ActionValidator {
+    + validate(battle : Battle, unitId : int,\n    action : Action) : ValidatedAction
+  }
+}
+
+package "battleengine.model" {
+  class Battle
+}
+
+BattleActions <|-- BattleEngine
+BattleLifecycle <|-- BattleEngine
+BattleEngine <|.. BattleEngineFacade
+BattleEngineFactory <|.. DefaultBattleEngineFactory
+DefaultBattleEngineFactory .left.> BattleEngineFacade : <<create>>
+BattleEngineFacade --> "1" BattleFactory : battleFactory
+BattleEngineFacade --> "1" TurnManager : turnManager
+BattleEngineFacade --> "1" ActionValidator : validator
+BattleEngineFacade --> "1" ActionResolver : resolver
+BattleEngineFacade --> "0..1" Battle : battle
+
+note left of BattleEngine
+  BattleEngine = BattleActions
+  + BattleLifecycle: exactly the six
+  methods of the assignment.
+  Controllers only get BattleActions,
+  the Battle Coordinator uses
+  BattleLifecycle (ISP).
+end note
+
+note left of BattleEngineFacade
+  <b>Facade.</b> The only engine class
+  other components see. One object
+  per battle; battle stays empty
+  until startBattle(). All public
+  methods are synchronized.
+end note
+@enduml

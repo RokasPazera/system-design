@@ -1,0 +1,76 @@
+@startuml 09_comp_l3
+!include style.iuml
+skinparam componentStyle uml2
+skinparam nodesep 35
+skinparam ranksep 45
+
+interface "GameSessionApi" as IGS
+interface "PlayerDataApi" as IPD
+interface "InstanceRegistryApi" as IREG
+interface "InstanceControlApi" as ICTL
+
+component "Game Instance" as GI {
+  component "Session Gateway" as GW
+  component "Player Session\nManager" as PSM
+  component "Instance Agent" as AG
+  component "World Simulation" as W
+  component "Battle Coordinator" as BC
+  component "Human Battle\nController" as HC
+  component "AI Battle\nController" as AIC
+  component "Battle Broadcaster" as BB
+  component "Battle Engine" as BE #EDE3F5
+  component "Player Data Client" as PDC
+
+  interface "PlayerSessions" as IPS
+  interface "WorldCommands" as IWC
+  interface "BattleCommands" as IBCMD
+  interface "ClientNotifier" as INOT
+  interface "InstanceStatus" as IIS
+  interface "EncounterHandler" as IEH
+  interface "BattleController" as ICTRL
+  interface "BattleActions" as IBA
+  interface "BattleLifecycle" as IBL
+  interface "BattleEngine" as IBE
+  interface "BattleEngineFactory" as IBEF
+  interface "PlayerDataCache" as IPDC
+}
+
+GW -up- IGS
+GW - INOT
+
+PSM -up- IPS
+GW --( IPS
+W -up- IWC
+GW --( IWC
+HC -up- IBCMD
+GW --( IBCMD
+
+AG -up- IIS
+PSM --( IIS
+AG --( IREG
+AG -- ICTL
+
+W --( IEH
+BC -up- IEH
+
+HC -up- ICTRL
+AIC -up- ICTRL
+BC --( ICTRL
+
+BB -up- IBA
+BB -up- IBL
+HC --( IBA
+AIC --( IBA
+BC --( IBL
+BB --( INOT
+
+BE -up- IBE
+BE -up- IBEF
+BB --( IBE
+BC --( IBEF
+
+PDC -up- IPDC
+PSM --( IPDC
+BC --( IPDC
+PDC --( IPD
+@enduml

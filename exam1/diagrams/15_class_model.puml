@@ -1,0 +1,140 @@
+@startuml 15_class_model
+!include style_class.iuml
+
+package "battleengine.model" {
+  class Battle {
+    + id : UUID {readOnly}
+    + status : BattleStatus {readOnly}
+    + turnNumber : int {readOnly}
+    + getPlayer(kind : PlayerKind) : BattlePlayer
+    + getOpponentOf(player : BattlePlayer) : BattlePlayer
+    + findUnit(unitId : int) : Unit [0..1]
+    + getOwner(unit : Unit) : BattlePlayer
+    + isOnActiveSide(unit : Unit) : boolean
+    + getActiveUnits() : List<Unit>
+    + determineWinner() : BattlePlayer [0..1]
+    + createSnapshot() : Battle
+    + setActivePlayer(player : BattlePlayer) : void
+    + incrementTurnNumber() : void
+    + removeKnockedOut(unit : Unit) : void
+    + finish(winner : BattlePlayer) : void
+  }
+
+  enum BattleStatus <<enumeration>> {
+    IN_PROGRESS
+    FINISHED
+  }
+
+  class BattlePlayer {
+    + number : int {readOnly}
+    + kind : PlayerKind {readOnly}
+    + /displayName : String
+    + /hasActiveUnits : boolean
+    + owns(unit : Unit) : boolean
+    + moveToKnockedOut(unit : Unit) : void
+  }
+
+  enum PlayerKind <<enumeration>> {
+    HUMAN
+    COMPUTER
+  }
+
+  class Unit {
+    + id : int {readOnly}
+    + name : String {readOnly}
+    + maxHp : int {readOnly}
+    + hp : int {readOnly}
+    + /isKnockedOut : boolean
+    + getStat(type : StatType) : int
+    + findAction(actionId : String) : ActionDefinition [0..1]
+    + takeDamage(amount : int) : void
+    + heal(amount : int) : void
+    + modifyStat(type : StatType, percentage : int) : void
+  }
+
+  class Stats {
+    - values : Map<StatType, Integer>
+    + get(type : StatType) : int
+    + applyPercentage(type : StatType, percentage : int) : void
+    + copy() : Stats
+  }
+
+  enum StatType <<enumeration>> {
+    POWER
+    DEFENCE
+    SPIRIT
+  }
+
+  class ActionDefinition {
+    + id : String {readOnly}
+    + name : String {readOnly}
+    + targetType : TargetType {readOnly}
+    + maxTargets : int {readOnly}
+    + canTarget(caster : Unit, target : Unit, battle : Battle) : boolean
+    + describe() : String
+  }
+
+  enum TargetType <<enumeration>> {
+    ENEMY
+    ALLY
+    ANY
+  }
+
+  interface ActionEffect <<interface>> {
+    + apply(caster : Unit, target : Unit) : EffectResult
+    + describe() : String
+    + describeResults(results : List<EffectResult>) : String
+  }
+}
+
+package "battleengine.logging" {
+  class BattleLog
+}
+
+Battle "1" *-- "2" BattlePlayer : players
+Battle "1" --> "1" BattlePlayer : activePlayer
+Battle "1" --> "0..1" BattlePlayer : winner
+Battle "1" *-- "1" BattleLog : log
+BattlePlayer "1" *-- "0..4" Unit : activeUnits\n{ordered}
+BattlePlayer "1" *-- "0..4" Unit : knockedOutUnits
+Unit "1" *-- "1" Stats : baseStats
+Unit "1" *-- "1" Stats : stats
+Unit "1" o-- "1..*" ActionDefinition : actions
+ActionDefinition "1" o-- "1..*" ActionEffect : effects\n{ordered}
+
+Battle ..> BattleStatus
+BattlePlayer ..> PlayerKind
+Stats ..> StatType
+ActionDefinition ..> TargetType
+
+note top of Battle
+  {activePlayer is always one of the two players}
+  {winner is set only when status = FINISHED}
+  createSnapshot() returns a deep copy: changing
+  it has no effect on the running battle.
+end note
+
+note right of BattlePlayer
+  {1 <= activeUnits + knockedOutUnits <= 4}
+  Number 1 = HUMAN, number 2 = COMPUTER.
+  displayName = "player 1 (Human)".
+  A knocked-out unit is moved to knockedOutUnits:
+  it can no longer act or be targeted, but it is
+  still part of the complete state.
+end note
+
+note right of Unit
+  {0 <= hp <= maxHp}
+  isKnockedOut = (hp = 0)
+  {readOnly}: getter, no setter.
+  Components outside the engine only
+  receive snapshots, never these
+  live objects.
+end note
+
+note bottom of Stats
+  {every value >= 0}
+  baseStats: values at the start of the battle,
+  stats: current values (with buffs/debuffs).
+end note
+@enduml

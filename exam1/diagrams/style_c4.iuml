@@ -1,0 +1,5 @@
+' Shared look for the C4 diagrams in TD 1
+skinparam defaultFontName Arial
+skinparam shadowing false
+skinparam wrapWidth 240
+AddElementTag("focus", $bgColor="#6B3FA0", $fontColor="#FFFFFF", $borderColor="#4B2A73", $legendText="contains / is the Battle Engine (focus of this TD)")

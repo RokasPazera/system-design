@@ -1,0 +1,44 @@
+@startuml 14b_class_exceptions
+!include style_class.iuml
+
+package "battleengine.api" {
+  abstract class BattleException
+  class InvalidBattleConfigException {
+    + errors : List<String> {readOnly}
+  }
+  class BattleStateException
+  class InvalidActionException {
+    + violation : RuleViolation {readOnly}
+  }
+  class UnknownBattleException {
+    + battleId : UUID {readOnly}
+  }
+}
+
+class "java.lang.RuntimeException" as SysEx
+
+SysEx <|-- BattleException
+BattleException <|-- InvalidBattleConfigException
+BattleException <|-- BattleStateException
+BattleException <|-- InvalidActionException
+BattleException <|-- UnknownBattleException
+
+note bottom of InvalidBattleConfigException
+  startBattle(): the
+  ConfigBattle is invalid
+end note
+note bottom of BattleStateException
+  call not allowed in the
+  current state (not started,
+  already started, finished)
+end note
+note bottom of InvalidActionException
+  applyAction() /
+  getAvailableActions():
+  a rule is broken
+end note
+note bottom of UnknownBattleException
+  getBattleLog(): battleId
+  is not this battle
+end note
+@enduml

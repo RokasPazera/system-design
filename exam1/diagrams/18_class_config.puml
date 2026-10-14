@@ -1,0 +1,89 @@
+@startuml 18_class_config
+!include style_class.iuml
+
+package "battleengine.api" {
+  class ConfigBattle {
+    + battleId : UUID
+    + firstPlayer : PlayerKind = HUMAN
+  }
+  class UnitConfig {
+    + unitId : int
+    + name : String
+    + maxHp : int
+    + hp : int
+    + power : int
+    + defence : int
+    + spirit : int
+  }
+  class ActionConfig {
+    + actionId : String
+    + name : String
+    + targetType : TargetType
+    + maxTargets : int
+  }
+  class EffectConfig {
+    + type : String
+    + value : int
+    + stat : StatType [0..1]
+  }
+  class InvalidBattleConfigException {
+    + errors : List<String> {readOnly}
+  }
+}
+
+package "battleengine.engine" {
+  class DefaultBattleEngineFactory {
+    - effectFactory : EffectFactory
+    + create() : BattleEngine
+  }
+  class BattleFactory {
+    - effectFactory : EffectFactory
+    + create(config : ConfigBattle) : Battle
+    - validate(config : ConfigBattle) : void
+    - createPlayer(number : int, kind : PlayerKind, units : List<UnitConfig>) : BattlePlayer
+    - createUnit(config : UnitConfig) : Unit
+    - createAction(config : ActionConfig) : ActionDefinition
+  }
+}
+
+package "battleengine.effects" {
+  class EffectFactory {
+    + create(config : EffectConfig) : ActionEffect
+  }
+}
+
+package "battleengine.model" {
+  class Battle
+}
+
+ConfigBattle "1" *-- "1..4" UnitConfig : humanUnits
+ConfigBattle "1" *-- "1..4" UnitConfig : computerUnits
+UnitConfig "1" *-- "1..*" ActionConfig : actions
+ActionConfig "1" *-- "1..*" EffectConfig : effects
+
+DefaultBattleEngineFactory ..> BattleFactory : <<create>>
+DefaultBattleEngineFactory --> "1" EffectFactory
+BattleFactory --> "1" EffectFactory
+BattleFactory ..> ConfigBattle : reads >
+BattleFactory ..> Battle : <<create>>
+BattleFactory ..> InvalidBattleConfigException : <<throw>>
+
+note right of BattleFactory
+  validate() collects all errors, then throws:
+  - 1..4 units per player
+  - unit ids unique in the battle
+  - 1 <= hp <= maxHp, stats >= 0
+  - every unit has 1..* actions
+  - 1 <= maxTargets <= 7
+  - every action has 1..* effects
+  - stat is set only for "modifyStat"
+  - known effect type (EffectFactory)
+end note
+
+note left of ConfigBattle
+  Everything the engine needs comes in here.
+  The Battle Coordinator converts levels and
+  equipment into plain stats before the battle,
+  so the engine does not know about them.
+end note
+@enduml

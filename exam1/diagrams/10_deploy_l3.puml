@@ -1,0 +1,48 @@
+@startuml 10_deploy_l3
+!include style.iuml
+skinparam nodesep 45
+skinparam ranksep 55
+
+node "Player PC\n(game-client.jar, assets)" <<device>> as pc
+node "Instance Manager Server\n(instance-manager.jar)" <<device>> as ims
+node "Persistence Server\n{2, behind load balancer}\n(persistence-service.jar)" <<device>> as pss
+node "Database Server\n(PostgreSQL, player_db)" <<device>> as dbs
+
+node "Game Server\n{1..*, auto-scaled}" <<device>> as gs {
+  node "Container runtime (orchestrated)" <<executionEnvironment>> as cr {
+    node "Game Instance container\n{0..*, one per instance}" <<executionEnvironment>> as gic #EDE3F5 {
+      node "Java 21 runtime (JVM)" <<executionEnvironment>> as rt {
+        artifact "game-instance-host.jar" as a_host
+        artifact "game-instance-world.jar" as a_world
+        artifact "game-instance-data.jar" as a_data
+        artifact "game-instance-battle.jar" as a_battle
+        artifact "battle-engine.jar" as a_engine #EDE3F5
+        artifact "GameData/*.json" as a_gamedata
+      }
+      artifact "instance-config.json" <<deployment spec>> as a_spec
+    }
+  }
+}
+
+a_host -[hidden]right- a_world
+a_world -[hidden]right- a_data
+a_host -[hidden]down- a_battle
+a_battle .right.> a_engine : <<use>>
+a_engine -[hidden]right- a_gamedata
+
+note bottom of a_spec
+  <b>«deployment spec»</b>
+  instanceId : UUID
+  ownerPlayerId : UUID
+  maxPlayers = 8
+  turnTimeoutSeconds = 60
+  emptyShutdownSeconds = 30
+  instanceManagerUrl, persistenceUrl
+end note
+
+pc -down- gic : <<WebSocket over TLS>>\nport 7000-7999\n0..8 players per instance
+pc -right- ims : <<HTTPS>>
+ims -down- cr : <<orchestrator API>> start / stop\n<<HTTPS>> registry
+gic -right- pss : <<HTTPS>>\ninternal network
+pss -down- dbs : <<TCP, SQL>>\nport 5432
+@enduml
