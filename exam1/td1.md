@@ -111,7 +111,7 @@ Figure 4.2 shows what the Player can do with the system. Play in own world and V
 
 ## 4.3 Use case diagram: the Battle Engine in its context
 
-To show the context in which the Battle Engine is used, Figure 4.3 takes the Battle Engine itself as the subject. From its point of view the other parts of the game instance are actors, and its six interface methods are the six main use cases. Battle Controller is an abstract actor (name in italics): the Human Battle Controller (player input) and the AI Battle Controller (computer) are specialisations of it, because they use the engine in the same way. Apply action always includes Validate action and Resolve effects; Knock out unit and End battle only happen under a condition, so they extend Apply action.
+To show the context in which the Battle Engine is used, Figure 4.3 takes the Battle Engine itself as the subject. From its point of view the other parts of the game instance are actors, and its six interface methods are the six main use cases. The Battle Coordinator starts the battle, passes the turn and reads the state and the log. The Human Battle Controller (player input) and the AI Battle Controller (computer) ask which actions are available and apply one; the AI also reads the battle state to choose its action. Apply action always includes Validate action: an action that breaks a rule is rejected before anything changes.
 
 ![Figure 4.3: UML use case diagram of the Battle Engine](03_uc_battle)
 
@@ -142,7 +142,7 @@ Figure 5.1 zooms in on the Online Game System. It consists of five containers. T
 
 ## 5.2 Deployment diagram
 
-Figure 5.2 shows on which hardware the containers run. The Game Servers are virtual machines in the cloud that are added and removed automatically when the number of instances changes ({1..*, auto-scaled}). Every instance runs in its own container ({0..*, one per instance}), so a crashing instance cannot affect another one and an instance is stopped by removing its container.
+Figure 5.2 shows on which hardware the containers run. The Game Servers are virtual machines in the cloud that are added and removed automatically when the number of instances changes ({1..*, auto-scaled}). Every instance runs in its own container ({0..*, one per instance}), so a crashing instance cannot affect another one and an instance is stopped by removing its container. The Account Provider is not shown, because it is an external system that we do not deploy.
 
 ![Figure 5.2: UML deployment diagram (layer 2)](05_deploy_l2)
 

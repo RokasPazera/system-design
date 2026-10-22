@@ -1,20 +1,14 @@
 @startuml 05_deploy_l2
 !include style.iuml
-skinparam nodesep 70
-skinparam ranksep 70
+skinparam nodesep 50
+skinparam ranksep 50
 
-node "Account Provider" <<external system>> as ap
-
-node "Player PC\n{OS = Windows 10/11}" <<device>> as pc {
-  node "Java 21 runtime\n(bundled with the installer)" <<executionEnvironment>> as pc_rt {
-    artifact "game-client.jar" as a_client
-  }
+node "Player PC" <<device>> as pc {
+  artifact "game-client.jar" as a_client
 }
 
 node "Instance Manager Server" <<device>> as ims {
-  node "Java 21 runtime (JVM)" <<executionEnvironment>> as ims_rt {
-    artifact "instance-manager.jar" as a_im
-  }
+  artifact "instance-manager.jar" as a_im
 }
 
 node "Game Server\n{1..*, auto-scaled}" <<device>> as gs {
@@ -24,9 +18,7 @@ node "Game Server\n{1..*, auto-scaled}" <<device>> as gs {
 }
 
 node "Persistence Server" <<device>> as pss {
-  node "Java 21 runtime (JVM)" <<executionEnvironment>> as ps_rt {
-    artifact "persistence-service.jar" as a_ps
-  }
+  artifact "persistence-service.jar" as a_ps
 }
 
 node "Database Server" <<device>> as dbs {
@@ -35,11 +27,9 @@ node "Database Server" <<device>> as dbs {
   }
 }
 
-ap -right- pc : <<HTTPS, OAuth 2.0>>
-ap -down- ims : <<HTTPS>>
-pc -- ims : <<HTTPS>>
-pc -down- gic : <<WebSocket over TLS>>\n0..8 players per instance
-ims -right- gs : <<HTTPS>> registry\n<<orchestrator API>> start / stop
-gs -down- pss : <<HTTPS>>
-pss -right- dbs : <<TCP, SQL>>
+pc -- gic : <<WebSocket over TLS>>
+pc --- ims : <<HTTPS>>
+gs -- ims : <<HTTPS>>
+gs -- pss : <<HTTPS>>
+pss -- dbs : <<TCP, SQL>>
 @enduml

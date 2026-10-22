@@ -5,47 +5,27 @@ left to right direction
 actor "Battle Coordinator" as BC
 
 rectangle "Battle Engine" {
-  usecase "Start battle\n<size:10>startBattle()</size>" as S
-  usecase "Pass turn\n<size:10>nextTurn()</size>" as N
-  usecase "Get battle log\n<size:10>getBattleLog()</size>" as L
-  usecase "Get battle state\n<size:10>getBattleState()</size>" as G
-  usecase "Get available actions\n<size:10>getAvailableActions()</size>" as A
-  usecase AA as "Apply action
-<size:10>applyAction()</size>
---
-<i>extension points:</i>
-target knocked out
-side defeated"
+  usecase "Start battle" as S
+  usecase "Pass turn" as N
+  usecase "Get battle log" as L
+  usecase "Get battle state" as G
+  usecase "Get available actions" as A
+  usecase "Apply action" as AA
   usecase "Validate action" as V
-  usecase "Resolve effects" as R
-  usecase "Knock out unit" as K
-  usecase "End battle" as E
 }
 
-actor "<i>Battle Controller</i>" as CTRL
-actor "Human Battle\nController" as HBC
 actor "AI Battle\nController" as ABC
+actor "Human Battle\nController" as HBC
 
 BC -- S
 BC -- N
 BC -- L
 BC -- G
-G -- CTRL
-A -- CTRL
-AA -- CTRL
-CTRL <|-- HBC
-CTRL <|-- ABC
+G -- ABC
+A -- ABC
+AA -- ABC
+A -- HBC
+AA -- HBC
 
-V <. AA : <<include>>
-R <. AA : <<include>>
-AA <. K : <<extend>>
-note on link
-  condition: {target HP <= 0}
-  extension point: target knocked out
-end note
-AA <. E : <<extend>>
-note on link
-  condition: {all units of one player knocked out}
-  extension point: side defeated
-end note
+AA .> V : <<include>>
 @enduml
