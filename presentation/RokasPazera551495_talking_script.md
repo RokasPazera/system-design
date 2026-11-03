@@ -28,7 +28,7 @@ Total: about 6:50.
 
 ## Slide 1: Title (0:00 to 0:15)
 
-Good morning. I am Rokas Pazera, student 551495. In the next seven minutes I present my two System Design assignments: first the Battle Engine, designed with the four layers of C4, then the refactoring of the 3D print scheduler.
+Good morning. I am Rokas Pazera, student 551495. In this presentation I will talk about my two System Design assignments: first the Battle Engine, designed with the four layers of C4, then the refactoring of the 3D print scheduler.
 
 ## Slide 2: Exam assignment 1: Battle Engine (0:15 to 0:25)
 
